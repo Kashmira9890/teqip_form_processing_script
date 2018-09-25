@@ -9,48 +9,43 @@ $tempfile = 'temporary.csv';
 $exportfiltered = 'export-filtered.csv';
 
 if (file_exists($student)) {
-    $inputstudent 	= fopen($student, 'r'); //open for reading
+    $inputstudent 	= fopen($student, 'r'); // Open for reading
     $inputcollege 	= fopen($college, 'r'); 
     $inputdept 	= fopen($dept, 'r');
-    $output 		= fopen($tempfile, 'w'); //open for writing
+    $output 		= fopen($tempfile, 'w'); // Open for writing
 
     while(! feof($inputcollege)) {
     	$col = 0;
     	$collegedata = fgetcsv($inputcollege);
 	$c[$collegedata[$col+1]] = $collegedata[$col];
     }
+    
     while(! feof($inputdept)) {
     	$col = 0;
 	$deptdata = fgetcsv($inputdept);
 	$d[$deptdata[$col+1]] = $deptdata[$col];
     }
-
-    $new_header = array("email", "username", "firstname", "middlename", "lastname", "institution", "department", "profile_field_yoe", "idnumber", "cohort1");
-    $count = 0;
     
+    // Get csv data
     $rows = array_map('str_getcsv', file($student));
     $my_header = array_shift($rows);
     $header = $my_header;
    
     // Formatting header     
-    print_r($header);
     array_unshift($header,"username");
   
     if (in_array("Timestamp", $header)) {
     	$key = array_search ('Timestamp', $header);
-    	//unset($header[$key]);
     	array_splice($header, $key, 1);
     }
     
     if (in_array("Email Address", $header)) {
     	$key = array_search ('Email Address', $header);
-    	//unset($header[$key]);
     	array_splice($header, $key, 1, 'email');
     }
   
     if (in_array("Mobile number", $header)) {
     	$key = array_search ('Mobile number', $header);
-    	//unset($header[$key]);
     	array_splice($header, $key, 1);
     }
     
@@ -68,8 +63,6 @@ if (file_exists($student)) {
     
     $header = array_map('strtolower', $header);
     $header = str_replace( ' ', '', $header);  
-    
-    print_r($header);
     fputcsv($output, $header);
     
     // Formatting csv data
@@ -80,8 +73,6 @@ if (file_exists($student)) {
 
     foreach($rows as $i=>$row) {
         $csv[$i] = array_combine($my_header, $row);
-        
-        //$csv[$i] = array('username' => $csv[$i]['Email Address']) + $csv[$i];
         $csv[$i] = array_merge(array('username' => $csv[$i]['Email Address']), $csv[$i]);
         
         if(array_key_exists('Timestamp', $csv[$i])) {
@@ -110,50 +101,12 @@ if (file_exists($student)) {
         
          fputcsv( $output, $csv[$i]);     
     }  
-     
-     print_r($csv);   
-  
-    /*
-    foreach ($c as $row) {
-         if (array_intersect_assoc($row, $find) == $find) {
-             $result[] = $row;
-         }
-    }
     
-    while( false !== ( $data = fgetcsv($inputstudent) ) ) { //read each line as an array
-	$size = sizeof($data);
+    // Printing on terminal
+    print_r($header);
+    print_r($csv);
 
-	if($count == 0) {
-		$a = $header;
-	} else {
-		$a = $data;
-		$a[0] = $data[1];
-		array_splice($a, 5, 1);
-	}
-	
-	// Creating cohort id
-	// Get college code
-	foreach($c as $x => $x_value) {
-    		if($data[6] == $x_value) {
-    			$a[$size-1] = $x . " " . $a[7] . " "; // Append college code, year_of_enrolment to the cohort id
-    			break;
-    		}
-	}
-	
-	// Get dept code
-	foreach($d as $x => $x_value) {
-    		if($data[7] == $x_value) {
-    			$a[$size-1] = $a[$size-1] . $x . " Student"; // Append dept code, "Student" to the cohort id
-    			break;
-    		}
-	}
-
-        //write modified data to temporary file
-        fputcsv( $output, $a);
-        $count++;
-    }
-*/
-    //close both files
+    // Close both files
     fclose( $inputstudent );
     fclose( $output );
 } else {
